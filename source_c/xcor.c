@@ -30,7 +30,7 @@ given as two columns of one file."
 
 char *columns=NULL,*outfile=NULL,stout=1;
 unsigned long length=ULONG_MAX,exclude=0;
-long tau=100;
+unsigned long tau=100;
 unsigned int verbosity=0xff;
 double *array1,*array2;
 char *infile=NULL;

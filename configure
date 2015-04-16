@@ -35,17 +35,17 @@ verbose=
 x_includes=NONE
 x_libraries=NONE
 bindir='bin'
-sbindir='${exec_prefix}/sbin'
-libexecdir='${exec_prefix}/libexec'
-datadir='${prefix}/share'
-sysconfdir='${prefix}/etc'
-sharedstatedir='${prefix}/com'
-localstatedir='${prefix}/var'
-libdir='${exec_prefix}/lib'
-includedir='${prefix}/include'
+sbindir='sbin'
+libexecdir='libexec'
+datadir='share'
+sysconfdir='etc'
+sharedstatedir='com'
+localstatedir='var'
+libdir='lib'
+includedir='include'
 oldincludedir='/usr/include'
-infodir='${prefix}/info'
-mandir='${prefix}/man'
+infodir='info'
+mandir='man'
 
 # Initialize some other variables.
 subdirs=
@@ -1020,7 +1020,7 @@ fi
 
 
 
-for fff in "$FC" f77 g77 "f77 +U77" "f77 -q -f -B108 -lU77"; do
+for fff in "$FC" f77 g77 gfortran "f77 +U77" "f77 -q -f -B108 -lU77"; do
    if test -z "$fff"; then 
       continue
    fi

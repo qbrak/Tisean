@@ -49,7 +49,7 @@ unsigned int MINN=50;
 unsigned int **indexes;
 unsigned long LENGTH=ULONG_MAX,FLENGTH=1000,exclude=0;
 unsigned long seed=0x9074325L;
-double EPS0=1.e-3,EPSF=1.2,Q=10.0;
+double EPS0=1.e-3,EPSF=1.2,Q=0.0;
 
 double **mat,*vec,*hsum,*newav;
 

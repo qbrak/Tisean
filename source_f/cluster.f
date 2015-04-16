@@ -47,7 +47,8 @@ c===========================================================================
       d(i,j)=dij
       np=max(i,j,np)
       goto 1
- 999  if(iv_io(iverb).eq.1) write(0,'(a,i)') "matrix size ", np
+c 999  if(iv_io(iverb).eq.1) write(0,'(a,i)') "matrix size ", np
+ 999  if(iv_io(iverb).eq.1) write(0,*) "matrix size ", np
       dmean=0
       nd=0
       do 20 i=1,np

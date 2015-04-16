@@ -239,7 +239,7 @@ int main(int argc,char **argv)
   fclose(file);
 
   dummy=(double**)get_multi_series(parin,&plength,0LU,
-				   &dim,"",(char)"1",verbosity);
+				   &dim,"",1,verbosity);
   
   check_alloc(order=(unsigned int**)malloc(sizeof(int*)*plength));
   for (i=0;i<plength;i++) {

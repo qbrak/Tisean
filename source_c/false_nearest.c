@@ -21,6 +21,7 @@
 /*Changes:
   12/10/05: It's multivariate now
   12/16/05: Scaled <eps> and sigma(eps)
+  03/08/09: delay was missing in delay embedding of univariate case
 */
 
 #include <stdio.h>
@@ -37,7 +38,7 @@ char *infile=NULL;
 char stdo=1,dimset=0;
 char *column=NULL;
 unsigned long length=ULONG_MAX,exclude=0,theiler=0;
-unsigned int delay=1,maxdim=5,minemb=1;
+unsigned int delay=1,maxdim=6,minemb=1;
 unsigned int comp=1,maxemb=5;
 unsigned int verbosity=0xff;
 double rt=2.0;
@@ -226,6 +227,11 @@ int main(int argc,char **argv)
     series=(double**)get_multi_series(infile,&length,exclude,&comp,column,
 				      dimset,verbosity);
 
+  if ((maxemb*delay+1) >= length) {
+      fprintf(stderr,"Not enough points!\n");
+      exit(FALSE_NEAREST_NOT_ENOUGH_POINTS);
+  }
+
   for (i=0;i<comp;i++) {
     rescale_data(series[i],length,&min,&ind_inter);
     variance(series[i],length,&av,&ind_var);
@@ -259,7 +265,7 @@ int main(int argc,char **argv)
   for (i=0;i<maxdim;i++) {
     if (comp == 1) {
       vcomp[i]=0;
-      vemb[i]=i;
+      vemb[i]=i*delay;
     }
     else {
       vcomp[i]=i%comp;
