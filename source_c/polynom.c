@@ -228,7 +228,6 @@ void make_cast(FILE *fcast)
       series[j]=series[j+1];
     series[hi]=casted;
   }
-  fclose(fcast);
 }
 
 int main(int argc,char **argv)
