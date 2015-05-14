@@ -98,10 +98,11 @@ double make_cond_entropy(long t)
   if (t < 0) {
     start=0;
     stop=length+t;
+    t=-t;
   }
   else {
     start=t;
-    stop=length;
+    stop=length-t;
   }
 
   for (i=start;i<stop;i++) {
