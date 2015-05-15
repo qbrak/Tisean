@@ -17,7 +17,7 @@
  *   along with TISEAN; if not, write to the Free Software
  *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-/*Author: Rainer Hegger. Last modified, Jul 13, 2010 */
+/*Author: Rainer Hegger. Last modified, Sep 20, 2000 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -26,17 +26,16 @@
 #include "routines/tsa.h"
 
 #define WID_STR "Estimates the time delayed mutual information\n\t\
-of one or two data columns"
+of the data set"
 
 
-char *file_out=NULL,stout=1,dimset=0;
+char *file_out=NULL,stout=1;
 char *infile=NULL;
 unsigned long length=ULONG_MAX,exclude=0;
-unsigned int dim=1;
+unsigned int column=1;
 unsigned int verbosity=0xff;
 long partitions=16,corrlength=20;
-long **array,*h1,*h11,**h2;
-char *column=NULL;
+long *array,*h1,*h11,**h2;
 
 void show_options(char *progname)
 {
@@ -49,7 +48,7 @@ void show_options(char *progname)
           " means stdin\n");
   fprintf(stderr,"\t-l # of points to be used [Default is all]\n");
   fprintf(stderr,"\t-x # of lines to be ignored [Default is 0]\n");
-  fprintf(stderr,"\t-c columns to read  [Default is 1]\n");
+  fprintf(stderr,"\t-c column to read  [Default is 1]\n");
   fprintf(stderr,"\t-b # of boxes [Default is 16]\n");
   fprintf(stderr,"\t-D max. time delay [Default is 20]\n");
   fprintf(stderr,"\t-o output file [-o without name means 'datafile'.mut;"
@@ -70,8 +69,8 @@ void scan_options(int n,char** in)
     sscanf(out,"%lu",&length);
   if ((out=check_option(in,n,'x','u')) != NULL)
     sscanf(out,"%lu",&exclude);
-  if ((out=check_option(in,n,'c','s')) != NULL)
-    column=out;
+  if ((out=check_option(in,n,'c','u')) != NULL)
+    sscanf(out,"%u",&column);
   if ((out=check_option(in,n,'b','u')) != NULL)
     sscanf(out,"%lu",&partitions);
   if ((out=check_option(in,n,'D','u')) != NULL)
@@ -87,7 +86,7 @@ void scan_options(int n,char** in)
 
 double make_cond_entropy(long t)
 {
-  long i,j,hi,hii,count=0,start,stop;
+  long i,j,hi,hii,count=0;
   double hpi,hpj,pij,cond_ent=0.0,norm;
 
   for (i=0;i<partitions;i++) {
@@ -95,23 +94,15 @@ double make_cond_entropy(long t)
     for (j=0;j<partitions;j++)
       h2[i][j]=0;
   }
-  if (t < 0) {
-    start=0;
-    stop=length+t;
-  }
-  else {
-    start=t;
-    stop=length;
-  }
-
-  for (i=start;i<stop;i++) {
-    hii=array[0][i];
-    hi=array[1][i+t];
-    h1[hi]++;
-    h11[hii]++;
-    h2[hi][hii]++;
-    count++;
-  }
+  for (i=0;i<length;i++)
+    if (i >= t) {
+      hii=array[i];
+      hi=array[i-t];
+      h1[hi]++;
+      h11[hii]++;
+      h2[hi][hii]++;
+      count++;
+    }
 
   norm=1.0/(double)count;
   cond_ent=0.0;
@@ -136,8 +127,8 @@ double make_cond_entropy(long t)
 int main(int argc,char** argv)
 {
   char stdi=0;
-  long tau,i,j;
-  double **series,min1,min2,interval1,interval2,shannon,condent;
+  long tau,i;
+  double *series,min,interval,shannon;
   FILE *file;
   
   if (scan_help(argc,argv))
@@ -149,7 +140,7 @@ int main(int argc,char** argv)
     what_i_do(argv[0],WID_STR);
 #endif
 
-  infile=search_datafile(argc,argv,NULL,verbosity);
+  infile=search_datafile(argc,argv,&column,verbosity);
   if (infile == NULL)
     stdi=1;
 
@@ -167,44 +158,20 @@ int main(int argc,char** argv)
   if (!stout)
     test_outfile(file_out);
 
-  if (column == NULL) {
-    series=(double**)get_multi_series(infile,&length,exclude,&dim,"",
-				      dimset,verbosity);
-  }
-  else {
-    series=(double**)get_multi_series(infile,&length,exclude,&dim,column,
-                                      dimset,verbosity);
-  }
+  series=(double*)get_series(infile,&length,exclude,column,verbosity);
+  rescale_data(series,length,&min,&interval);
 
   check_alloc(h1=(long *)malloc(sizeof(long)*partitions));
   check_alloc(h11=(long *)malloc(sizeof(long)*partitions));
   check_alloc(h2=(long **)malloc(sizeof(long *)*partitions));
   for (i=0;i<partitions;i++) 
     check_alloc(h2[i]=(long *)malloc(sizeof(long)*partitions));
-  check_alloc(array=(long **)malloc(sizeof(long*)*2));
-  check_alloc(array[0]=(long *)malloc(sizeof(long)*length));
-  check_alloc(array[1]=(long *)malloc(sizeof(long)*length));
-  if (dim == 1) {
-    rescale_data(series[0],length,&min1,&interval1);
-    for (i=0;i<length;i++)
-      if (series[0][i] < 1.0)
-	array[0][i]=array[1][i]=(long)(series[0][i]*(double)partitions);
-      else
-	array[0][i]=array[1][i]=partitions-1;
-    free(series[0]);
-  }
-  else {
-    rescale_data(series[0],length,&min1,&interval1);
-    rescale_data(series[1],length,&min2,&interval2);
-    for (j=0;j<2;j++) {
-      for (i=0;i<length;i++)
-	if (series[j][i] < 1.0)
-	  array[j][i]=(long)(series[j][i]*(double)partitions);
-	else
-	  array[j][i]=partitions-1;
-      free(series[j]);
-    }
-  }
+  check_alloc(array=(long *)malloc(sizeof(long)*length));
+  for (i=0;i<length;i++)
+    if (series[i] < 1.0)
+      array[i]=(long)(series[i]*(double)partitions);
+    else
+      array[i]=partitions-1;
   free(series);
 
   shannon=make_cond_entropy(0);
@@ -215,9 +182,10 @@ int main(int argc,char** argv)
     file=fopen(file_out,"w");
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Opened %s for writing\n",file_out);
-    for (tau=-corrlength;tau<=corrlength;tau++) {
-      condent=make_cond_entropy(tau);
-      fprintf(file,"%ld %e %e\n",tau,condent,condent/log((double)partitions));
+    fprintf(file,"#shannon= %e\n",shannon);
+    fprintf(file,"%d %e\n",0,shannon);
+    for (tau=1;tau<=corrlength;tau++) {
+      fprintf(file,"%ld %e\n",tau,make_cond_entropy(tau));
       fflush(file);
     }
     fclose(file);
@@ -225,9 +193,10 @@ int main(int argc,char** argv)
   else {
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Writing to stdout\n");
-    for (tau=-corrlength;tau<=corrlength;tau++) {
-      condent=make_cond_entropy(tau);
-      fprintf(stdout,"%ld %e %e\n",tau,condent,condent/log((double)partitions));
+    fprintf(stdout,"#shannon= %e\n",shannon);
+    fprintf(stdout,"%d %e\n",0,shannon);
+    for (tau=1;tau<=corrlength;tau++) {
+      fprintf(stdout,"%ld %e\n",tau,make_cond_entropy(tau));
       fflush(stdout);
     }
   }
