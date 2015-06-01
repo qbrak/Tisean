@@ -35,8 +35,8 @@ c===========================================================================
       a=fcan('A',real(a))
       b=fcan('B',real(b))
       c=fcan('C',real(c))
-      xo=fcan('X',real(xo))
-      yo=fcan('Y',real(yo))
+      xo=fcan('R',real(xo))
+      yo=fcan('I',real(yo))
       isout=igetout(fout,iverb)
 
       if(isout.eq.1) fout="ikeda.dat"
