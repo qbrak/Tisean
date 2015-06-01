@@ -310,8 +310,8 @@ int main(int argc,char **argv)
     if (verbosity)
       fprintf(stderr,"Opened %s for writing\n",outfile);
     for (i=maxemb;i<length;i++) {
+      rundel=0;
       for (j=0;j<indim;j++) {
-	rundel=0;
 	emb=formatlist[j];
 	for (k=0;k<emb;k++)
 	  fprintf(fout,"%e ",series[j][i-inddelay[rundel++]]);
