@@ -94,7 +94,6 @@ double make_cond_entropy(long t)
     for (j=0;j<partitions;j++)
       h2[i][j]=0;
   }
-
   for (i=0;i<length;i++)
     if (i >= t) {
       hii=array[i];
